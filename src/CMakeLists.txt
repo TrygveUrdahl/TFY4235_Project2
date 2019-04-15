@@ -2,12 +2,18 @@ cmake_minimum_required(VERSION 3.1)
 
 project(TFY4235_Project2 CXX)
 
-add_compile_options(-std=c++11 -O3)
+add_compile_options(-std=c++17 -O3)
 
 find_package(OpenMP)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -larmadillo")
+find_package(Armadillo REQUIRED)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -larmadillo -openmp")
 
-add_executable(project2 main.cpp)
+file(GLOB project2_SRC
+    "*.cpp"
+)
+
+include_directories(${ARMADILLO_INCLUDE_DIRS})
+add_executable(project2 ${project2_SRC})
 
 if(OpenMP_CXX_FOUND)
     target_link_libraries(project2 PUBLIC OpenMP::OpenMP_CXX)
