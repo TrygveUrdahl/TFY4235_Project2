@@ -34,8 +34,7 @@ arma::sp_mat generateEnergyOperator(int n, arma::vec xaxis, double (*function)(d
 
 // Full FDM matrix with both Laplace and Energy operator
 arma::sp_mat generateFDMMatrix(int n, double value, arma::vec xaxis, double (*potential)(double), bool periodic) {
-  arma::sp_mat mat(n, n);
-  mat += generateLaplaceOperator(n , value, periodic);
+  arma::sp_mat mat = generateLaplaceOperator(n , value, periodic);
   mat += generateEnergyOperator(n, xaxis, potential);
   return mat;
 }

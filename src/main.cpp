@@ -21,12 +21,12 @@ int main(int argc, char** argv) {
   double dx = 1/n;
   arma::vec xaxis = arma::linspace<arma::vec>(0, 1, n);
 
-  auto mat = generateFDMMatrix(n, 1, xaxis, testPotential, false);
+  auto system = generateFDMMatrix(n, 1, xaxis, testPotential, false);
   // std::cout << mat << std::endl;
 
   arma::vec eigval;
   arma::mat eigvec;
-  arma::eigs_sym(eigval, eigvec, mat, n - 1);
+  arma::eigs_sym(eigval, eigvec, system, n - 1);
 
   eigvec.save("../output/testMat.txt", arma::raw_ascii);
   eigval.save("../output/testVec.txt", arma::raw_ascii);
