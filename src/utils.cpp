@@ -26,6 +26,7 @@ arma::sp_mat generateLaplaceOperator(int n, double value, bool periodic) {
 // Potential energy operator: v(x_i) on diagonal
 arma::sp_mat generateEnergyOperator(int n, arma::vec xaxis, double (*function)(double)) {
   arma::sp_mat mat(n, n);
+  #pragma omp parallel for schedule(static)
   for (int i = 0; i < n; i++) {
     mat(i, i) = function(xaxis(i));
   }
@@ -37,4 +38,60 @@ arma::sp_mat generateFDMMatrix(int n, double value, arma::vec xaxis, double (*po
   arma::sp_mat mat = generateLaplaceOperator(n , value, periodic);
   mat += generateEnergyOperator(n, xaxis, potential);
   return mat;
+}
+
+// Calculate inner product of two vectors
+double innerProduct(arma::vec eigen, arma::vec initial) {
+  arma::rowvec eigenRow = arma::conv_to<arma::rowvec>::from(eigen);
+  double result = arma::as_scalar(eigenRow * initial);
+  return result;
+}
+
+// Check orthogonality of eigenvectors
+bool checkOrthogonality(arma::mat eigvec, int n) {
+  bool correct = true;
+  #pragma omp parallel for schedule(static)
+  for (int i = 0; i < n - 1; i++) {
+    for (int j = 0; j < n - 1; j++) {
+      double val = innerProduct(eigvec.col(i), eigvec.col(j));
+      if (j != i) {
+        if (val > 1E-9) {
+          correct = false;
+          // std::cout << "Break! val: " << val << std::endl;
+          break;
+        }
+      }
+      else if (j == i) {
+        if (abs(val - 1.0f) > 1E-10) {
+          correct = false;
+          // std::cout << "Break2! val: " << val - 1.0f << std::endl;
+          break;
+        }
+      }
+    }
+  }
+  return correct;
+}
+
+// Get normalization of one eigenvector
+double getNormalization(arma::vec eigen) {
+  double norm = 0;
+  #pragma omp parallel for schedule(static) reduction(+:norm)
+  for (int i = 0; i < eigen.n_elem; i++) {
+    norm += pow(abs(eigen(i)), 2);
+  }
+  return norm;
+}
+
+bool checkNormalization(arma::mat eigvec, int n) {
+  bool correct = true;
+  for (int i = 0; i < n - 1; i++) {
+    double norm = getNormalization(eigvec.col(i));
+    if (abs(norm - 1.0f) > 1E-10) {
+      correct = false;
+      std::cout << "Break norm! val: " << abs(norm - 1.0) << std::endl;
+      break;
+    }
+  }
+  return correct;
 }

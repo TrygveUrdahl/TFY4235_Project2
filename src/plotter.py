@@ -8,7 +8,7 @@ eigval = np.loadtxt("./output/testVec.txt", dtype=np.float64)
 dim = eigvec.shape[0]
 xaxis = np.linspace(0, 1, num=dim)
 
-# Plot eigenvectors
+# Plot eigenvectors / states
 # plt.subplot(2,1,1)
 for i in range(1, 4):
     plt.subplot(3,1,1)
@@ -32,12 +32,12 @@ for i in range(1, 4):
     plt.ylabel("$p(x)$")
     plt.legend(loc="best")
 
-# Plot eigenvalues
+# Plot eigenvalues / energies
 plt.subplot(3,1,3)
 for i in range(5):
-    plt.plot([0, 1], [eigval[i]*dim, eigval[i]*dim], '--', label="FDM " + str(i))
     analytic = ((math.pi*(i + 2))**2) / dim
     plt.plot([0, 1], [analytic, analytic], '-', label="Analytic " + str(i))
+    plt.plot([0, 1], [eigval[i] * dim, eigval[i] * dim], '--', label="FDM " + str(i))
     # print("Analytic: ", analytic, " FDM: ", eigval[i])
     print("Factor: ", analytic/(eigval[i] * dim))
 plt.xlabel("")
