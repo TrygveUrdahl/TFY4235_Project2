@@ -21,3 +21,5 @@ arma::vec getAlphaCoefficients(const arma::vec &initial, const arma::mat &eigvec
 arma::cx_mat getSystemStateEvolution(const arma::mat &eigvec, const arma::vec &eigenEnergy,
                             const arma::vec &initialState, const arma::vec &alphas, double t,
                             int tSteps);
+
+arma::vec generateDeltaInitialState(int n);

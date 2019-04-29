@@ -142,14 +142,20 @@ arma::cx_mat getSystemStateEvolution(const arma::mat &eigvec, const arma::vec &e
               const arma::vec &initialState, const arma::vec &alphas, double t, int tSteps) {
   arma::cx_mat states(eigvec.col(0).n_elem, tSteps);
   states.fill(0);
-  const arma::cx_double i(0, 1);
-  const double dx = 1.0f/(1024);
+  const arma::cx_double im(0, 1);
+  const double dx = 1.0f/(eigvec.col(0).n_elem);
   double dt = t/static_cast<double>(tSteps);
   for (int i = 0; i < tSteps; i++) { // Time steps
     double time = i * dt;
     for (int n = 0; n < alphas.n_elem; n++) { // Energies
-      states.col(i) += alphas(n) * std::exp(-i * eigenEnergy(n) * time) * eigvec(n);
+      states.col(i) += alphas(n) * std::exp(-im * eigenEnergy(n) * time) * eigvec(n);
     }
   }
   return states;
+}
+arma::vec generateDeltaInitialState(int n) {
+  arma::vec state(n);
+  state.fill(0);
+  state(n/2) = 1;
+  return state;
 }

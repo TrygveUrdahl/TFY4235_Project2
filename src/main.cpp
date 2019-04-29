@@ -43,10 +43,11 @@ int main(int argc, char** argv) {
   std::cout << "Normalized: " << (normalized ? "success! " : "fail! ") << std::endl;
 
   arma::vec initialState = sqrt(0.5f) * eigvec.col(0) + sqrt(0.5f) * eigvec.col(1); // generateInitialState(initialStateFunction, xaxis);
+  // arma::vec initialState = generateAlphaInitialState(n);
   arma::vec alphas = getAlphaCoefficients(initialState, eigvec);
   arma::cx_mat states = getSystemStateEvolution(eigvec, eigenergy, initialState, alphas, 0, 1000);
   arma::cx_mat states2 = getSystemStateEvolution(eigvec, eigenergy, initialState, alphas, 1, 1000);
-  auto state = states.col(states.n_cols - 1);
+  auto state = states.col(0);
   double normalization = getNormalization(state);
   std::cout << "Normalization after time evolution: " << std::scientific << normalization << std::endl;
 

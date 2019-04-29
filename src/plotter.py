@@ -126,18 +126,21 @@ def PlotState(eigvecfile, eigvalfile):
     plt.show()
 
 def updateAnim(i, fig, line, states, xaxis):
-    line.set_ydata(states[:,i])
+    line.set_ydata([abs(i)**2 for i in states[:,i]])
     #line.set_ydata([math.sin(math.pi*(x+i/100)) for x in xaxis])
     return line,
 
-def animatePlot(stateFile):
+def AnimatePlot(stateFile):
     states = LoadComplexData(stateFile)
     fig, ax = plt.subplots()
     dim = states.shape[0]
     xaxis = np.linspace(0, 1, num=dim)
-    line, = ax.plot(xaxis, states[:,0])
+    line, = ax.plot(xaxis, [abs(i)**2 for i in states[:,0]])
     #line, = ax.plot(xaxis, [math.sin(math.pi*x) for x in xaxis])
     #ax.set_ylim(-1,1)
+    plt.title("Animation")
+    plt.xlabel("$x$")
+    plt.ylabel("$P(x)$")
 
     ani = animation.FuncAnimation(fig, updateAnim, fargs=(fig, line, states, xaxis), frames=states.shape[1], interval=40)
 
@@ -148,4 +151,4 @@ def animatePlot(stateFile):
 # PlotVecAndEnergy("./output/eigvecs.txt", "./output/eigvals.txt")
 # PlotOneStateComplex("./output/state2.txt")
 # PlotState("./output/eigvecs.txt", "./output/eigvals.txt");
-animatePlot("./output/state2.txt")
+AnimatePlot("./output/state2.txt")
