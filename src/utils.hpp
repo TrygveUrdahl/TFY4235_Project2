@@ -1,20 +1,23 @@
 #pragma once
 
-arma::sp_mat generateFDMMatrix(int n, double value, arma::vec xaxis,
-                                double (*potential)(double), bool periodic);
+arma::sp_mat generateFDMMatrix(int n, double value, const arma::vec &xaxis,
+                                double (*potentialF)(double), double v0, bool periodic);
 
-arma::vec generateInitialState(double (*function)(double, int), arma::vec xaxis);
+arma::vec generateInitialState(double (*function)(double, int), const arma::vec &xaxis);
 
-double innerProduct(arma::vec eigen, arma::vec initial);
+void solveSystem(arma::vec *eigenergy, arma::mat *eigvec, const arma::sp_mat &system, int n);
 
-bool checkOrthogonality(arma::mat eigvec);
+double innerProduct(const arma::vec &eigen, const arma::vec &initial);
 
-double getNormalization(arma::vec eigen);
-double getNormalization(arma::cx_vec eigen);
+bool checkOrthogonality(const arma::mat &eigvec);
 
+double getNormalization(const arma::vec &eigen);
+double getNormalization(const arma::cx_vec &eigen);
 
-bool checkNormalization(arma::mat eigvec);
+bool checkNormalization(const arma::mat &eigvec);
 
-arma::vec getAlphaCoefficients(arma::vec initial, arma::mat eigvec);
+arma::vec getAlphaCoefficients(const arma::vec &initial, const arma::mat &eigvec);
 
-arma::cx_vec getSystemState(arma::mat eigvec, arma::vec eigenEnergy, arma::vec initialState, arma::vec alphas, double t);
+arma::cx_mat getSystemStateEvolution(const arma::mat &eigvec, const arma::vec &eigenEnergy,
+                            const arma::vec &initialState, const arma::vec &alphas, double t,
+                            int tSteps);
