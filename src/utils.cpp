@@ -143,8 +143,8 @@ arma::cx_mat getSystemStateEvolution(const arma::mat &eigvec, const arma::vec &e
   arma::cx_mat states(eigvec.col(0).n_elem, tSteps);
   states.fill(0);
   const arma::cx_double i(0, 1);
+  const double dx = 1.0f/(1024);
   double dt = t/static_cast<double>(tSteps);
-  std::cout << "dt: " << dt << std::endl;
   for (int i = 0; i < tSteps; i++) { // Time steps
     double time = i * dt;
     for (int n = 0; n < alphas.n_elem; n++) { // Energies

@@ -29,7 +29,7 @@ int main(int argc, char** argv) {
     save = atoi(argv[2]);
   }
 
-  auto system = generateFDMMatrix(n, 1, xaxis, potentialBarrierMiddleThird, 1000, false);
+  auto system = generateFDMMatrix(n, 1, xaxis, zeroPotential, 1000, false);
   // auto system = generateFDMMatrix(n, 1.0f/(dx*dx), xaxis, testPotential, 1, false);
   // std::cout << system << std::endl;
 
@@ -42,7 +42,7 @@ int main(int argc, char** argv) {
   bool normalized = checkNormalization(eigvec);
   std::cout << "Normalized: " << (normalized ? "success! " : "fail! ") << std::endl;
 
-  arma::vec initialState = eigvec.col(1); // sqrt(0.5f) * eigvec.col(0) + sqrt(0.5f) * eigvec.col(1); // generateInitialState(initialStateFunction, xaxis);
+  arma::vec initialState = sqrt(0.5f) * eigvec.col(0) + sqrt(0.5f) * eigvec.col(1); // generateInitialState(initialStateFunction, xaxis);
   arma::vec alphas = getAlphaCoefficients(initialState, eigvec);
   arma::cx_mat states = getSystemStateEvolution(eigvec, eigenergy, initialState, alphas, 0, 1000);
   arma::cx_mat states2 = getSystemStateEvolution(eigvec, eigenergy, initialState, alphas, 1, 1000);
