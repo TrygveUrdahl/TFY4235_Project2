@@ -148,6 +148,6 @@ def AnimatePlot(stateFile):
 
 
 # PlotVecAndEnergy("./output/eigvecs.txt", "./output/eigvals.txt")
-# PlotOneStateComplex("./output/state2.txt")
+PlotOneStateComplex("./output/state.txt")
 # PlotState("./output/eigvecs.txt", "./output/eigvals.txt");
-AnimatePlot("./output/state.txt")
+# AnimatePlot("./output/state.txt")

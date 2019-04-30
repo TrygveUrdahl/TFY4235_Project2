@@ -6,6 +6,7 @@
 
 #include "utils.hpp"
 #include "potentials.hpp"
+#include "timeEvolution.hpp"
 
 double initialStateFunction(double x, int n) {
   return sqrt(2) * sin(M_PI * x); // /sqrt(n);
@@ -43,7 +44,7 @@ int main(int argc, char** argv) {
   bool normalized = checkNormalization(eigvec);
   std::cout << "Normalized: " << (normalized ? "success! " : "fail! ") << std::endl;
 
-  arma::vec initialState = sqrt(0.5f) * eigvec.col(0) + sqrt(0.5f) * eigvec.col(1); // generateInitialState(initialStateFunction, xaxis);
+  arma::vec initialState = eigvec.col(0); //sqrt(0.5f) * eigvec.col(0) + sqrt(0.5f) * eigvec.col(1); // generateInitialState(initialStateFunction, xaxis);
   // arma::vec initialState = generateAlphaInitialState(n);
   arma::vec alphas = getAlphaCoefficients(initialState, eigvec);
   // arma::cx_mat states = getSystemStateEvolution(eigvec, eigenergy, initialState, alphas, 0, 1000);
@@ -53,7 +54,7 @@ int main(int argc, char** argv) {
   // std::cout << "Normalization after time evolution: " << std::scientific << normalization << std::endl;
 
   arma::cx_vec initialStateCX(initialState, arma::vec(initialState.n_elem));
-  arma::cx_mat states = evolveSystemForwardEuler(eigvec, eigenergy, initialStateCX, xaxis, zeroPotential, 100, 0.8 /*CFL*/, 1000);
+  arma::cx_mat states = evolveSystemCrankNicolson(eigvec, eigenergy, initialStateCX, xaxis, zeroPotential, 100, 1, 1000);
 
 
 

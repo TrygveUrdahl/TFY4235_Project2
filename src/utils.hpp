@@ -18,13 +18,4 @@ bool checkNormalization(const arma::mat &eigvec);
 
 arma::vec getAlphaCoefficients(const arma::vec &initial, const arma::mat &eigvec);
 
-arma::cx_mat getSystemStateEvolution(const arma::mat &eigvec, const arma::vec &eigenEnergy,
-                            const arma::vec &initialState, const arma::vec &alphas, double t,
-                            int tSteps);
-
 arma::vec generateDeltaInitialState(int n);
-
-arma::cx_mat evolveSystemForwardEuler(const arma::mat &eigvec,
-              const arma::vec &eigenEnergy, const arma::cx_vec &initialState,
-              const arma::vec &xaxis, double (*potential)(double, double),
-              double v0, double CFL, int tSteps);
