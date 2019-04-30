@@ -23,6 +23,7 @@ int main(int argc, char** argv) {
 
   int n = atoi(argv[1]);
   double dx = 1/n;
+  double dx2 = dx*dx;
   arma::vec xaxis = arma::linspace<arma::vec>(0, 1, n);
   bool save = false;
   if (argc > 2) {
@@ -45,15 +46,22 @@ int main(int argc, char** argv) {
   arma::vec initialState = sqrt(0.5f) * eigvec.col(0) + sqrt(0.5f) * eigvec.col(1); // generateInitialState(initialStateFunction, xaxis);
   // arma::vec initialState = generateAlphaInitialState(n);
   arma::vec alphas = getAlphaCoefficients(initialState, eigvec);
-  arma::cx_mat states = getSystemStateEvolution(eigvec, eigenergy, initialState, alphas, 0, 1000);
-  arma::cx_mat states2 = getSystemStateEvolution(eigvec, eigenergy, initialState, alphas, 1, 1000);
-  auto state = states.col(0);
-  double normalization = getNormalization(state);
-  std::cout << "Normalization after time evolution: " << std::scientific << normalization << std::endl;
+  // arma::cx_mat states = getSystemStateEvolution(eigvec, eigenergy, initialState, alphas, 0, 1000);
+  // arma::cx_mat states2 = getSystemStateEvolution(eigvec, eigenergy, initialState, alphas, 1, 1000);
+  // auto state = states.col(0);
+  // double normalization = getNormalization(state);
+  // std::cout << "Normalization after time evolution: " << std::scientific << normalization << std::endl;
+
+  arma::cx_vec initialStateCX(initialState, arma::vec(initialState.n_elem));
+  arma::cx_mat states = evolveSystemForwardEuler(eigvec, eigenergy, initialStateCX, xaxis, zeroPotential, 100, 0.8 /*CFL*/, 1000);
+
+
+
 
   if (save) {
+    // states.save("../output/state.txt", arma::raw_ascii);
+    // states2.save("../output/state2.txt", arma::raw_ascii);
     states.save("../output/state.txt", arma::raw_ascii);
-    states2.save("../output/state2.txt", arma::raw_ascii);
     eigvec.save("../output/eigvecs.txt", arma::raw_ascii);
     eigenergy.save("../output/eigvals.txt", arma::raw_ascii);
   }

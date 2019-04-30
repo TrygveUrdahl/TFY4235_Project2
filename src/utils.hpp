@@ -1,7 +1,7 @@
 #pragma once
 
 arma::sp_mat generateFDMMatrix(int n, double value, const arma::vec &xaxis,
-                                double (*potentialF)(double), double v0, bool periodic);
+                                double (*potentialF)(double, double), double v0, bool periodic);
 
 arma::vec generateInitialState(double (*function)(double, int), const arma::vec &xaxis);
 
@@ -23,3 +23,8 @@ arma::cx_mat getSystemStateEvolution(const arma::mat &eigvec, const arma::vec &e
                             int tSteps);
 
 arma::vec generateDeltaInitialState(int n);
+
+arma::cx_mat evolveSystemForwardEuler(const arma::mat &eigvec,
+              const arma::vec &eigenEnergy, const arma::cx_vec &initialState,
+              const arma::vec &xaxis, double (*potential)(double, double),
+              double v0, double CFL, int tSteps);

@@ -126,8 +126,8 @@ def PlotState(eigvecfile, eigvalfile):
     plt.show()
 
 def updateAnim(i, fig, line, states, xaxis):
-    line.set_ydata([abs(i)**2 for i in states[:,i]])
-    #line.set_ydata([math.sin(math.pi*(x+i/100)) for x in xaxis])
+    #line.set_ydata([abs(i)**2 for i in states[:,i]])
+    line.set_ydata([i.real for i in states[:,i]])
     return line,
 
 def AnimatePlot(stateFile):
@@ -135,14 +135,13 @@ def AnimatePlot(stateFile):
     fig, ax = plt.subplots()
     dim = states.shape[0]
     xaxis = np.linspace(0, 1, num=dim)
-    line, = ax.plot(xaxis, [abs(i)**2 for i in states[:,0]])
-    #line, = ax.plot(xaxis, [math.sin(math.pi*x) for x in xaxis])
-    #ax.set_ylim(-1,1)
+    #line, = ax.plot(xaxis, [abs(i)**2 for i in states[:,0]])
+    line, = ax.plot(xaxis, [i.real for i in states[:,0]])
     plt.title("Animation")
     plt.xlabel("$x$")
     plt.ylabel("$P(x)$")
 
-    ani = animation.FuncAnimation(fig, updateAnim, fargs=(fig, line, states, xaxis), frames=states.shape[1], interval=40)
+    ani = animation.FuncAnimation(fig, updateAnim, fargs=(fig, line, states, xaxis), frames=states.shape[1], interval=100, repeat=True)
 
     # ani.save("./output/animation.mp4")
     plt.show()
@@ -151,4 +150,4 @@ def AnimatePlot(stateFile):
 # PlotVecAndEnergy("./output/eigvecs.txt", "./output/eigvals.txt")
 # PlotOneStateComplex("./output/state2.txt")
 # PlotState("./output/eigvecs.txt", "./output/eigvals.txt");
-AnimatePlot("./output/state2.txt")
+AnimatePlot("./output/state.txt")

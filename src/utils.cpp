@@ -24,20 +24,20 @@ arma::sp_mat generateLaplaceOperator(int n, double value, bool periodic) {
 }
 
 // Potential energy operator: v(x_i) on diagonal
-arma::sp_mat generateEnergyOperator(int n, const arma::vec &xaxis, double (*function)(double), double v0) {
+arma::sp_mat generateEnergyOperator(int n, const arma::vec &xaxis, double (*function)(double, double), double v0) {
   arma::sp_mat mat(n, n);
   for (int i = 0; i < n; i++) {
-    mat(i, i) = function(xaxis(i));
+    mat(i, i) = function(xaxis(i), v0);
   }
   return mat;
 }
 
 // Full FDM matrix with both Laplace and Energy operator
-arma::sp_mat generateFDMMatrix(int n, double value, const arma::vec &xaxis, double (*potentialF)(double), double v0, bool periodic) {
-  arma::sp_mat mat = generateLaplaceOperator(n , value, periodic);
+arma::sp_mat generateFDMMatrix(int n, double value, const arma::vec &xaxis, double (*potentialF)(double, double), double v0, bool periodic) {
+  arma::sp_mat laplace = generateLaplaceOperator(n , value, periodic);
   arma::sp_mat energy = generateEnergyOperator(n, xaxis, potentialF, v0);
   // mat = mat + energy;
-  return mat + energy;
+  return laplace + energy;
 }
 
 // Generate initial state vector from function
@@ -58,7 +58,7 @@ void solveSystem(arma::vec *eigenergy, arma::mat *eigvec, const arma::sp_mat &sy
       }
     }
   }
-  (*eigenergy) /= 1.0f/(n);
+  (*eigenergy) /= 1.0/(n);
 }
 
 // Calculate inner product of two vectors
@@ -83,7 +83,7 @@ bool checkOrthogonality(const arma::mat &eigvec) {
         }
       }
       else if (j == i) {
-        if (abs(val - 1.0f) > 1E-10) {
+        if (abs(val - 1.0) > 1E-10) {
           correct = false;
           // std::cout << "Break2! val: " << val - 1.0f << std::endl;
           break;
@@ -120,7 +120,7 @@ bool checkNormalization(const arma::mat &eigvec) {
   #pragma omp parallel for schedule(static) reduction(min:correct)
   for (int i = 0; i < eigvec.row(0).n_elem; i++) {
     double norm = getNormalization(eigvec.col(i));
-    if (abs(norm - 1.0f) > 1E-10) {
+    if (abs(norm - 1.0) > 1E-10) {
       correct = false;
       // std::cout << "Break norm! val: " << abs(norm - 1.0) << std::endl;
     }
@@ -143,7 +143,7 @@ arma::cx_mat getSystemStateEvolution(const arma::mat &eigvec, const arma::vec &e
   arma::cx_mat states(eigvec.col(0).n_elem, tSteps);
   states.fill(0);
   const arma::cx_double im(0, 1);
-  const double dx = 1.0f/(eigvec.col(0).n_elem);
+  const double dx = 1.0/(eigvec.col(0).n_elem);
   double dt = t/static_cast<double>(tSteps);
   for (int i = 0; i < tSteps; i++) { // Time steps
     double time = i * dt;
@@ -153,9 +153,62 @@ arma::cx_mat getSystemStateEvolution(const arma::mat &eigvec, const arma::vec &e
   }
   return states;
 }
+
 arma::vec generateDeltaInitialState(int n) {
   arma::vec state(n);
   state.fill(0);
   state(n/2) = 1;
   return state;
+}
+
+arma::cx_vec advanceSystemForwardEuler(const arma::cx_vec &initialState,
+              const arma::vec &xaxis, double (*potential)(double, double),
+              double v0, double dt) {
+
+  const int N = initialState.n_elem;
+  arma::cx_vec finalState(N);
+  arma::cx_mat A(N, N);
+  A.fill(0);
+  const arma::cx_double im(0, 1);
+  const double dx = xaxis(1) - xaxis(0); // Uniform x-axis
+  const double dx2 = dx * dx;
+  // Fill A
+  for (int i = 0; i < N; i++) {
+    double v = potential(xaxis(i), v0);
+    A(i, i) = 1.0 - (im * dt * v) - (2.0 * im * dt/dx2);
+
+    if (i > 0) {
+      A(i, i - 1) = im * dt / dx2;
+    }
+    if (i < N - 1) {
+      A(i, i + 1) = im * dt / dx2;
+    }
+  }
+  finalState = A * initialState;
+  return finalState;
+}
+
+arma::cx_mat evolveSystemForwardEuler(const arma::mat &eigvec,
+              const arma::vec &eigenEnergy, const arma::cx_vec &initialState,
+              const arma::vec &xaxis, double (*potential)(double, double),
+              double v0, double CFL, int tSteps) {
+
+  arma::cx_mat states(initialState.n_elem, tSteps);
+  states.col(0) = initialState;
+  const double dx = xaxis(1) - xaxis(0);
+  const double dx2 = dx * dx;
+  double dt = dx2 * CFL;
+
+  for (int t = 1; t < tSteps; t++) {
+    states.col(t) = advanceSystemForwardEuler(initialState, xaxis, potential, v0, dt);
+  }
+
+  return states;
+}
+
+arma::cx_vec advanceSystemCrankNicolson(const arma::cx_vec &initialState,
+              const arma::vec &xaxis, double (*potential)(double, double),
+              double v0, double dt) {
+
+  //
 }

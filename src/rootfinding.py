@@ -1,13 +1,13 @@
 #!/usr/local/bin/python3.6
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.animation as animation
 import scipy.optimize as opt
 from math import sqrt, sin, cos, pi, exp
 
-
 def f(lam):
     barrier = 1000 #v0
+    if (lam > barrier):
+        return (lam - barrier)**2
     k = sqrt(lam)
     kappa = sqrt(barrier-lam)
 
@@ -22,4 +22,9 @@ plt.plot(xaxis, yaxis)
 plt.plot(xaxis, [0 for x in xaxis])
 plt.show()
 
-# print(opt.ridder(f, 20, 49.965))
+roots = []
+for x in [50, 250, 700, 900]:
+    root = opt.fsolve(f, x)
+    if root not in roots:
+        roots.append(float(root))
+print("Roots:", roots)
