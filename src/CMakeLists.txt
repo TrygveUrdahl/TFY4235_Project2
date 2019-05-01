@@ -6,6 +6,7 @@ add_compile_options(-std=c++17 -O3)
 
 find_package(OpenMP)
 find_package(Armadillo REQUIRED)
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lsuperlu")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -larmadillo -openmp")
 
 file(GLOB project2_SRC

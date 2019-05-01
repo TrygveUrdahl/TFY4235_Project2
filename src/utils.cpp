@@ -8,17 +8,17 @@ arma::sp_mat generateLaplaceOperator(int n, double value, bool periodic) {
   arma::sp_mat mat(n, n);
   // #pragma omp parallel for schedule(static)
   for (int i = 0; i < n; i++) {
-    mat(i, i) = 2 * value;
+    mat(i, i) = 2.0 * value;
     if (i > 0) {
-      mat(i, i - 1) = -1 * value;
+      mat(i, i - 1) = -1.0 * value;
     }
     if (i < (n - 1)) {
-      mat(i, i + 1) = -1 * value;
+      mat(i, i + 1) = -1.0 * value;
     }
   }
   if (periodic) {
-    mat(0, n - 1) = -1 * value;
-    mat(n - 1, 0) = -1 * value;
+    mat(0, n - 1) = -1.0 * value;
+    mat(n - 1, 0) = -1.0 * value;
   }
   return mat;
 }

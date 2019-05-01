@@ -164,8 +164,29 @@ def AnimatePlot(stateFile):
     # ani.save("./output/animation.mp4")
     plt.show()
 
+def ImshowPlot(stateFile):
+    states = LoadComplexData(stateFile)
+    dim = states.shape[0]
+    tSteps = states.shape[1]
+    dt = 1.0/tSteps
+    xaxis = np.linspace(0, 1, num=dim)
+    extent = [0, tSteps*dt, xaxis[0], xaxis[-1]]
+    states = [abs(ii)**2 for ii in states]
+    #states = [ii.real for ii in states]
+    #states = [ii.imag for ii in states]
+
+    fig, ax = plt.subplots()
+    plt.imshow(states, extent=extent, aspect="auto")
+    plt.title("Time evolution of $|\Psi(x,t)|^2$")
+    plt.xlabel("Time $t/(2mL^2/\hbar)$")
+    plt.ylabel("Position $x/L$")
+    plt.colorbar()
+    fig.tight_layout()
+
+    plt.show()
 
 # PlotVecAndEnergy("./output/eigvecs.txt", "./output/eigvals.txt")
 # PlotOneStateComplex("./output/state.txt")
 # PlotState("./output/eigvecs.txt", "./output/eigvals.txt");
-AnimatePlot("./output/state.txt")
+# AnimatePlot("./output/state.txt")
+ImshowPlot("./output/state.txt")
