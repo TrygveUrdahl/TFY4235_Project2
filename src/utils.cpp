@@ -83,7 +83,7 @@ bool checkOrthogonality(const arma::mat &eigvec) {
         }
       }
       else if (j == i) {
-        if (abs(val - 1.0) > 1E-10) {
+        if (abs(val - 1.0) > 1E-9) {
           correct = false;
           // std::cout << "Break2! val: " << val - 1.0f << std::endl;
           break;
@@ -99,7 +99,7 @@ double getNormalization(const arma::vec &eigen) {
   double norm = 0;
   #pragma omp parallel for schedule(static) reduction(+:norm)
   for (int i = 0; i < eigen.n_elem; i++) {
-    norm += pow(abs(eigen(i)), 2);
+    norm += std::pow(abs(eigen(i)), 2);
   }
   return norm;
 }
@@ -120,7 +120,7 @@ bool checkNormalization(const arma::mat &eigvec) {
   #pragma omp parallel for schedule(static) reduction(min:correct)
   for (int i = 0; i < eigvec.row(0).n_elem; i++) {
     double norm = getNormalization(eigvec.col(i));
-    if (abs(norm - 1.0) > 1E-10) {
+    if (abs(norm - 1.0) > 1E-9) {
       correct = false;
       // std::cout << "Break norm! val: " << abs(norm - 1.0) << std::endl;
     }
@@ -128,7 +128,7 @@ bool checkNormalization(const arma::mat &eigvec) {
   return correct;
 }
 
-// Get alpha coefficients for time evolution
+// Get alpha coefficients
 arma::vec getAlphaCoefficients(const arma::vec &initial, const arma::mat &eigvec) {
   arma::vec alphas(eigvec.row(0).n_elem);
   #pragma omp parallel for schedule(static)
@@ -140,8 +140,7 @@ arma::vec getAlphaCoefficients(const arma::vec &initial, const arma::mat &eigvec
 
 
 arma::vec generateDeltaInitialState(int n) {
-  arma::vec state(n);
-  state.fill(0);
+  arma::vec state = arma::vec(n).zeros();
   state(n/2) = 1;
   return state;
 }

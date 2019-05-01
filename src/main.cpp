@@ -30,9 +30,8 @@ int main(int argc, char** argv) {
   if (argc > 2) {
     save = atoi(argv[2]);
   }
-
-  auto system = generateFDMMatrix(n, 1, xaxis, zeroPotential, 1000, false);
-  // auto system = generateFDMMatrix(n, 1.0f/(dx*dx), xaxis, testPotential, 1, false);
+  double v0 = 1000;
+  auto system = generateFDMMatrix(n, 1, xaxis, potentialBarrier, v0, false);
   // std::cout << system << std::endl;
 
   arma::vec eigenergy;
@@ -44,7 +43,7 @@ int main(int argc, char** argv) {
   bool normalized = checkNormalization(eigvec);
   std::cout << "Normalized: " << (normalized ? "success! " : "fail! ") << std::endl;
 
-  arma::vec initialState = eigvec.col(0); //sqrt(0.5f) * eigvec.col(0) + sqrt(0.5f) * eigvec.col(1); // generateInitialState(initialStateFunction, xaxis);
+  arma::vec initialState = sqrt(0.5f) * eigvec.col(1) + sqrt(0.5f) * eigvec.col(2); // generateInitialState(initialStateFunction, xaxis);
   // arma::vec initialState = generateAlphaInitialState(n);
   arma::vec alphas = getAlphaCoefficients(initialState, eigvec);
   // arma::cx_mat states = getSystemStateEvolution(eigvec, eigenergy, initialState, alphas, 0, 1000);
@@ -52,11 +51,9 @@ int main(int argc, char** argv) {
   // auto state = states.col(0);
   // double normalization = getNormalization(state);
   // std::cout << "Normalization after time evolution: " << std::scientific << normalization << std::endl;
-
-  arma::cx_vec initialStateCX(initialState, arma::vec(initialState.n_elem));
-  arma::cx_mat states = evolveSystemCrankNicolson(eigvec, eigenergy, initialStateCX, xaxis, zeroPotential, 100, 1, 1000);
-
-
+  arma::cx_vec initialStateCX(initialState, arma::vec(initialState.n_elem).zeros());
+  // arma::cx_mat states = evolveSystemForwardEuler(eigvec, eigenergy, initialStateCX, xaxis, zeroPotential, 100, 1, 1000);
+  arma::cx_mat states = evolveSystemCrankNicolson(eigvec, eigenergy, initialStateCX, xaxis, potentialBarrier, v0, 1, 1000);
 
 
   if (save) {

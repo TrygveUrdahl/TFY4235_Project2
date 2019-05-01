@@ -61,7 +61,7 @@ arma::cx_mat evolveSystemForwardEuler(const arma::mat &eigvec,
   double dt = dx2 * CFL;
 
   for (int t = 1; t < tSteps; t++) {
-    states.col(t) = advanceSystemForwardEuler(initialState, xaxis, potential, v0, dt);
+    states.col(t) = advanceSystemForwardEuler(states.col(t - 1), xaxis, potential, v0, dt);
   }
 
   return states;
@@ -107,8 +107,7 @@ arma::cx_mat evolveSystemCrankNicolson(const arma::mat &eigvec,
   states.col(0) = initialState;
   const double dt = t/tSteps;
   for (int t = 1; t < tSteps; t++) {
-    states.col(t) = advanceSystemCrankNicolson(initialState, xaxis, potential, v0, dt);
+    states.col(t) = advanceSystemCrankNicolson(states.col(t - 1), xaxis, potential, v0, dt);
   }
-
   return states;
 }
