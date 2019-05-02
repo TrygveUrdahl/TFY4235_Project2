@@ -43,9 +43,9 @@ int main(int argc, char** argv) {
   arma::vec initialState = sqrt(0.5) * eigvec.col(0) + sqrt(0.5) * eigvec.col(1);
   arma::vec alphas = getAlphaCoefficients(initialState, eigvec);
   double time = M_PI/(eigenergy(1)-eigenergy(0));
-  // arma::cx_mat states = getSystemStateEvolution(eigvec, eigenergy, initialState, alphas, dx, time, 1000);
+  //arma::cx_mat states = getSystemStateEvolution(eigvec, eigenergy, initialState, alphas, dx, time, 1000);
   arma::cx_vec initialStateCX(initialState, arma::vec(initialState.n_elem).zeros());
-  arma::cx_mat states = evolveSystemCrankNicolson(initialStateCX, xaxis, potentialBarrier, v0, time, 1000);
+  arma::cx_mat states = evolveSystemCrankNicolson(initialStateCX, xaxis, potentialBarrier, v0, time);
 
 
   if (save) {

@@ -12,4 +12,4 @@ arma::cx_mat evolveSystemForwardEuler(const arma::mat &eigvec,
 
 arma::cx_mat evolveSystemCrankNicolson(const arma::cx_vec &initialState,
               const arma::vec &xaxis, double (*potential)(double, double),
-              double v0, double t, int tSteps);
+              double v0, double t);
