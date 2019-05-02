@@ -102,13 +102,13 @@ arma::cx_mat evolveSystemCrankNicolson(const arma::cx_vec &initialState,
 
   const double dx = xaxis(1) - xaxis(0);
   const double dt = dx * dx;
-  tSteps = t/dt;
+  int tSteps = t/dt;
   std::cout << "tSteps: " << tSteps << std::endl;
   arma::cx_mat states(initialState.n_elem, tSteps);
   states.col(0) = initialState;
   for (int t = 1; t < tSteps; t++) {
     states.col(t) = advanceSystemCrankNicolson(states.col(t - 1), xaxis, potential, v0, dt);
-    if (t % 1000 = 0) std::cout << "t: " << t << std::endl;
+    if (t % 1000 == 0) std::cout << "t: " << t << std::endl;
   }
   return states;
 }

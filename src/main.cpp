@@ -34,7 +34,6 @@ int main(int argc, char** argv) {
   arma::vec eigenergy;
   arma::mat eigvec;
   solveSystem(&eigenergy, &eigvec, system, n, dx2);
-  eigenergy.save("../output/eigvals.txt", arma::raw_ascii);
   bool orthogonal = checkOrthogonality(eigvec);
   std::cout << "Orthogonal: " << (orthogonal ? "success! " : "fail! ") << std::endl;
   bool normalized = checkNormalization(eigvec);
@@ -42,17 +41,16 @@ int main(int argc, char** argv) {
 
   arma::vec initialState = sqrt(0.5) * eigvec.col(0) + sqrt(0.5) * eigvec.col(1);
   arma::vec alphas = getAlphaCoefficients(initialState, eigvec);
-  double time = M_PI/(eigenergy(1)-eigenergy(0));
-  //arma::cx_mat states = getSystemStateEvolution(eigvec, eigenergy, initialState, alphas, dx, time, 1000);
+  double time = 10 * M_PI/(eigenergy(1)-eigenergy(0));
+  arma::cx_mat states = getSystemStateEvolution(eigvec, eigenergy, initialState, alphas, dx, time, 1000);
   arma::cx_vec initialStateCX(initialState, arma::vec(initialState.n_elem).zeros());
-  arma::cx_mat states = evolveSystemCrankNicolson(initialStateCX, xaxis, potentialBarrier, v0, time);
+  // arma::cx_mat states = evolveSystemCrankNicolson(initialStateCX, xaxis, potentialBarrier, v0, time);
 
 
   if (save) {
-    // states.save("../output/state.txt", arma::raw_ascii);
     states.save("../output/state.txt", arma::raw_ascii);
     eigvec.save("../output/eigvecs.txt", arma::raw_ascii);
-    //eigenergy.save("../output/eigvals.txt", arma::raw_ascii);
+    eigenergy.save("../output/eigvals.txt", arma::raw_ascii);
   }
   return 0;
 }
