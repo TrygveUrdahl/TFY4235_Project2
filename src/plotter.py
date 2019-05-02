@@ -19,43 +19,45 @@ def PlotVecAndEnergy(eigvecfile, eigvalfile):
     dim = eigvec.shape[0]
     xaxis = np.linspace(0, 1, num=dim)
 
-
+    fig, ax = plt.subplots()
     # Plot eigenvectors / states
     # plt.subplot(2,1,1)
-    for i in range(1, 4):
+    for i in range(0, 3):
         plt.subplot(2,1,1)
-        plt.plot(xaxis, eigvec[:,i - 1], ".", label="Eigenvector " + str(i))
-        state = [math.sqrt(2) * math.sin((i + 1) * math.pi * x)/math.sqrt(dim) for x in xaxis]
+        plt.plot(xaxis, eigvec[:,i] * math.sqrt(dim), ".", label="Eigenvector " + str(i))
+        state = [math.sqrt(2) * math.sin((i + 1) * math.pi * x) for x in xaxis]
         plt.plot(xaxis, state, '-', label="Analytic " + str(i))
-        plt.xlabel("x")
+        plt.xlabel("$x/L$")
         plt.ylabel("y")
         plt.legend(loc="best")
-        error = sum([abs(state[j] - eigvec[j,i - 1]) for j in range(dim)])
+        error = sum([abs(state[j] - eigvec[j,i]) for j in range(dim)])
         print("Error " + str(i) + ": ", error)
-        normalizedEig = [abs(i)**2 for i in eigvec[:,i - 1]]
+        normalizedEig = [abs(i)**2 for i in eigvec[:,i]]
         normalizedEigSum = sum(normalizedEig)
-        normalizedState = [abs(i)**2 for i in state]
+        normalizedState = [abs(i/math.sqrt(dim))**2 for i in state]
         normalizedStateSum = sum(normalizedState)
         print("NormalizedNumeric: ", normalizedEigSum, " NormalizedAnalytic: ", normalizedStateSum)
         plt.subplot(2,1,2)
         plt.plot(xaxis, normalizedEig, '.', label="Eigenvector " + str(i))
         plt.plot(xaxis, normalizedState, '-', label="Analytic " + str(i))
-        plt.xlabel("$x$")
+        plt.xlabel("$x/L$")
         plt.ylabel("$|\Psi(x,t)|^2$")
         plt.legend(loc="best")
+    fig.tight_layout()
     plt.savefig("./output/eigenstates.png")
     plt.show()
     # Plot eigenvalues / energies
     #plt.subplot(3,1,3)
-    for i in range(5):
-        analytic = ((math.pi*(i + 2))**2)
+    for i in range(6):
+        analytic = ((math.pi*(i + 1))**2)
         plt.plot([0, 1], [analytic, analytic], '-', label="Analytic " + str(i))
-        plt.plot([0, 1], [eigval[i] * dim, eigval[i] * dim], '--', label="FDM " + str(i))
-        # print("Analytic: ", analytic, " FDM: ", eigval[i])
+        plt.plot([0, 1], [eigval[i], eigval[i]], '--', label="FDM " + str(i))
+        print("Analytic: ", analytic, " FDM: ", eigval[i])
     plt.xlabel("")
     plt.ylabel("Energy $\lambda_n$")
     plt.xticks([])
     plt.legend(loc="best")
+    fig.tight_layout()
     plt.savefig("./output/eigenenergies.png")
     plt.show()
 
@@ -71,17 +73,17 @@ def PlotOneStateComplex(stateFile):
     xaxis = np.linspace(0, 1, num=dim)
     normalizedState = [abs(i)**2 for i in state]
     #plt.plot(xaxis, normalizedState, '-', label="Probability")
-
+    fig, ax = plt.subplots()
     plt.subplot(3,1,1)
     plt.plot(xaxis, X, '-', label="Real")
-    plt.xlabel("x")
+    plt.xlabel("$x/L$")
     plt.ylabel("y")
     plt.legend(loc="best")
 
     plt.subplot(3,1,2)
     plt.plot(xaxis, Y, '-', label="Imaginary")
 
-    plt.xlabel("x")
+    plt.xlabel("$x/L$")
     plt.ylabel("y")
     plt.legend(loc="best")
 
@@ -91,6 +93,7 @@ def PlotOneStateComplex(stateFile):
     plt.ylabel("$|\Psi(x,t)|^2$")
     plt.legend(loc="best")
     print("Normalization: ", sum(normalizedState))
+    fig.tight_layout()
     plt.show()
 
 def PlotState(eigvecfile, eigvalfile):
@@ -99,36 +102,39 @@ def PlotState(eigvecfile, eigvalfile):
     eigval = np.loadtxt(eigvalfile, dtype=np.float64)
     dim = eigvec.shape[0]
     xaxis = np.linspace(0, 1, num=dim)
+    fig, ax = plt.subplots()
     # Plot eigenvectors / states
     # plt.subplot(2,1,1)
-    for i in range(1, 6):
+    for i in range(1, 5):
         plt.subplot(2,1,1)
-        plt.plot(xaxis, eigvec[:,i - 1], ".", label="Eigenvector " + str(i))
+        plt.plot(xaxis, eigvec[:,i - 1], ".", label="Eigenvector " + str(i - 1))
         plt.xlabel("$x/L$")
         plt.ylabel("$y$")
         plt.legend(loc="best")
         normalized = [abs(i)**2 for i in eigvec[:, i-1]]
         plt.subplot(2,1,2)
-        plt.plot(xaxis, normalized, '.', label="Eigenvector " + str(i))
+        plt.plot(xaxis, normalized, '.', label="Eigenvector " + str(i - 1))
         plt.xlabel("$x/L$")
         plt.ylabel("$|\Psi(x,t)|^2$")
         plt.legend(loc="best")
     #plt.plot([1/3, 1/3], [0, barrierHeight], '-', color='black')
     #plt.plot([2/3, 2/3], [0, barrierHeight], '-', color='black')
     #plt.plot([1/3, 2/3], [barrierHeight, barrierHeight], '-', color='black')
+    fig.tight_layout()
     plt.savefig("./output/eigenstatesbarrier.png")
     plt.show()
 
     # Plot eigenvalues / energies
     #plt.subplot(3,1,3)
-    for i in range(1,7):
-        plt.plot([0, 1], [eigval[i] * dim, eigval[i] * dim], '--', label="Eigenenergy " + str(i))
-        print("Eigenenergy: ", eigval[i] * dim)
+    for i in range(0,6):
+        plt.plot([0, 1], [eigval[i], eigval[i]], '--', label="Eigenenergy " + str(i))
+        print("Eigenenergy: ", eigval[i])
     plt.title("")
     plt.xlabel("")
     plt.xticks([])
     plt.ylabel("Energy $\lambda_n$")
     plt.legend(loc="best")
+    fig.tight_layout()
     plt.savefig("./output/eigenenergiesbarrier.png")
 
     plt.show()

@@ -5,7 +5,7 @@ arma::sp_mat generateFDMMatrix(int n, double value, const arma::vec &xaxis,
 
 arma::vec generateInitialState(double (*function)(double, int), const arma::vec &xaxis);
 
-void solveSystem(arma::vec *eigenergy, arma::mat *eigvec, const arma::sp_mat &system, int n);
+void solveSystem(arma::vec *eigenergy, arma::mat *eigvec, const arma::sp_mat &system, int n, double dx2);
 
 double innerProduct(const arma::vec &eigen, const arma::vec &initial);
 

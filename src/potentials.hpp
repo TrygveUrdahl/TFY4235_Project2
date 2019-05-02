@@ -11,6 +11,7 @@ double potentialBarrier(double x, double v0) {
     return 0;
   }
 }
+
 double zeroPotential(double x, double v0) {
   if (x < 0 || x > 1) {
     return std::numeric_limits<double>::max();

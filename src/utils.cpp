@@ -8,17 +8,17 @@ arma::sp_mat generateLaplaceOperator(int n, double value, bool periodic) {
   arma::sp_mat mat(n, n);
   // #pragma omp parallel for schedule(static)
   for (int i = 0; i < n; i++) {
-    mat(i, i) = 2.0 * value;
+    mat(i, i) = 2.0 / value;
     if (i > 0) {
-      mat(i, i - 1) = -1.0 * value;
+      mat(i, i - 1) = -1.0 / value;
     }
     if (i < (n - 1)) {
-      mat(i, i + 1) = -1.0 * value;
+      mat(i, i + 1) = -1.0 / value;
     }
   }
   if (periodic) {
-    mat(0, n - 1) = -1.0 * value;
-    mat(n - 1, 0) = -1.0 * value;
+    mat(0, n - 1) = -1.0 / value;
+    mat(n - 1, 0) = -1.0 / value;
   }
   return mat;
 }
@@ -27,16 +27,15 @@ arma::sp_mat generateLaplaceOperator(int n, double value, bool periodic) {
 arma::sp_mat generateEnergyOperator(int n, const arma::vec &xaxis, double (*function)(double, double), double v0) {
   arma::sp_mat mat(n, n);
   for (int i = 0; i < n; i++) {
-    mat(i, i) = function(xaxis(i), v0);
+    mat(i, i) = function(xaxis(i + 1), v0);
   }
   return mat;
 }
 
 // Full FDM matrix with both Laplace and Energy operator
 arma::sp_mat generateFDMMatrix(int n, double value, const arma::vec &xaxis, double (*potentialF)(double, double), double v0, bool periodic) {
-  arma::sp_mat laplace = generateLaplaceOperator(n , value, periodic);
+  arma::sp_mat laplace = generateLaplaceOperator(n, value, periodic);
   arma::sp_mat energy = generateEnergyOperator(n, xaxis, potentialF, v0);
-  // mat = mat + energy;
   return laplace + energy;
 }
 
@@ -49,22 +48,28 @@ arma::vec generateInitialState(double (*function)(double, int), const arma::vec 
   return initialState;
 }
 
-void solveSystem(arma::vec *eigenergy, arma::mat *eigvec, const arma::sp_mat &system, int n) {
-  arma::eigs_sym(*eigenergy, *eigvec, system, n - 1);
-  for (int i = 0; i < n - 1; i++) {
+void solveSystem(arma::vec *eigenergy, arma::mat *eigvec, const arma::sp_mat &system, int n, double dx2) {
+  int k = n - 3;
+  arma::eigs_sym(*eigenergy, *eigvec, system, k, "sm");
+  for (int i = 0; i < k; i++) {
     if ((*eigvec)(1,i) < 0) {
-      for (int j = 0; j < n; j++) {
+      for (int j = 0; j < n - 2; j++) {
         (*eigvec)(j, i) *= -1;
       }
     }
   }
-  (*eigenergy) /= 1.0/(n);
+  arma::mat eigvecFull(n, k);
+  eigvecFull.row(0).fill(0);
+  eigvecFull.row(eigvecFull.n_rows - 1).fill(0);
+  eigvecFull.submat(1, 0, n - 2, k - 1) = *eigvec;
+  *eigvec = eigvecFull;
 }
 
 // Calculate inner product of two vectors
 double innerProduct(const arma::vec &eigen, const arma::vec &initial) {
   arma::rowvec eigenRow = arma::conv_to<arma::rowvec>::from(eigen);
   double result = arma::as_scalar(eigenRow * initial);
+  // double result = dot(eigen, initial);
   return result;
 }
 
@@ -130,7 +135,7 @@ bool checkNormalization(const arma::mat &eigvec) {
 
 // Get alpha coefficients
 arma::vec getAlphaCoefficients(const arma::vec &initial, const arma::mat &eigvec) {
-  arma::vec alphas(eigvec.row(0).n_elem);
+  arma::vec alphas(eigvec.row(0).n_elem, arma::fill::zeros);
   #pragma omp parallel for schedule(static)
   for (int i = 0; i < eigvec.row(0).n_elem; i++) {
     alphas(i) = innerProduct(eigvec.col(i), initial);
