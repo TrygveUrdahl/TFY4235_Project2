@@ -12,8 +12,42 @@ def LoadComplexData(file,**genfromtext_args):
     complex_parser = np.vectorize(lambda x: complex(*eval(x)))
     return complex_parser(array_as_strings)
 
-def PlotVecAndEnergy(eigvecfile, eigvalfile):
 
+def CompareErrors(eigvalfile):
+    """
+    Compare calculated eigenvalues versus analytic eigenvalues, and how the error
+    changes with increasing n.
+    """
+    eigval = np.loadtxt(eigvalfile, dtype=np.float64)
+    dim = eigval.shape[0]
+    analytic = [((math.pi*(i + 1))**2) for i in range(dim)]
+    xaxis = [i for i in range(dim)]
+    error = [abs(analytic[i]-eigval[i])**2 for i in range(dim) ]
+
+    fig, ax = plt.subplots()
+    plt.subplot(2,1,1)
+    plt.semilogx(xaxis, eigval, label="Calculated")
+    plt.semilogx(xaxis, analytic, label="Analytic")
+    plt.xlabel("$n$")
+    plt.ylabel("$\lambda_n$")
+    plt.legend(loc="best")
+    fig.tight_layout()
+
+    plt.subplot(2,1,2)
+    plt.semilogx(xaxis, error, label="Rel. error")
+    plt.xlabel("$n$")
+    plt.ylabel("$abs( {analytic}_n - \lambda_n)^2$")
+    plt.legend(loc="best")
+    fig.tight_layout()
+    plt.savefig("./output/errors.png")
+    plt.show()
+
+
+def PlotVecAndEnergy(eigvecfile, eigvalfile):
+    """
+    Plot eigenstates and eigenenergies and compare to a known analytic solution
+    (for the zeroPotential well).
+    """
     eigvec = np.loadtxt(eigvecfile, dtype=np.float64)
     eigval = np.loadtxt(eigvalfile, dtype=np.float64)
     dim = eigvec.shape[0]
@@ -61,9 +95,12 @@ def PlotVecAndEnergy(eigvecfile, eigvalfile):
     plt.savefig("./output/eigenenergies.png")
     plt.show()
 
-def PlotOneStateComplex(stateFile):
+def PlotOneStateComplex(stateFile, t):
+    """
+    Plot one state from a complex state file. The state to plot can be chosen.
+    """
     # Plot one state
-    state = LoadComplexData(stateFile)[:,0]
+    state = LoadComplexData(stateFile)[:,t]
     X = [val.real for val in state]
     Y = [val.imag for val in state]
     #print(Y)
@@ -97,6 +134,9 @@ def PlotOneStateComplex(stateFile):
     plt.show()
 
 def PlotState(eigvecfile, eigvalfile):
+    """
+    Plot eigenvectors and eigenenergies for a solved system
+    """
     barrierHeight = 0.005
     eigvec = np.loadtxt(eigvecfile, dtype=np.float64)
     eigval = np.loadtxt(eigvalfile, dtype=np.float64)
@@ -141,9 +181,11 @@ def PlotState(eigvecfile, eigvalfile):
 
 def initAnim():
     barrierHeight = 0.005
-    plt.plot([1/3, 1/3], [0, barrierHeight], '-', color='black')
-    plt.plot([2/3, 2/3], [0, barrierHeight], '-', color='black')
-    plt.plot([1/3, 2/3], [barrierHeight, barrierHeight], '-', color='black')
+    barrier = True
+    if (barrier):
+        plt.plot([1/3, 1/3], [0, barrierHeight], '-', color='black')
+        plt.plot([2/3, 2/3], [0, barrierHeight], '-', color='black')
+        plt.plot([1/3, 2/3], [barrierHeight, barrierHeight], '-', color='black')
 
 def updateAnim(i, fig, line, states, xaxis, text, dt):
     line.set_ydata([abs(ii)**2 for ii in states[:,i]])
@@ -152,6 +194,10 @@ def updateAnim(i, fig, line, states, xaxis, text, dt):
     return line, text
 
 def AnimatePlot(stateFile):
+    """
+    Animate time evolution of a system with a barrier from x = 1/3 to x = 2/3
+    (barrier can be togled by variable "barrier" in initAnim)
+    """
     states = LoadComplexData(stateFile)
     dt = 1/states.shape[1]
     fig, ax = plt.subplots()
@@ -167,14 +213,17 @@ def AnimatePlot(stateFile):
     text = ax.text(0.5, 0.95, "t' = %f" % 0, transform=ax.transAxes, va="top", ha="center")
     ani = animation.FuncAnimation(fig, updateAnim, init_func=initAnim, fargs=(fig, line, states, xaxis, text, dt), frames=states.shape[1], interval=50, repeat=True)
 
-    # ani.save("./output/animation.mp4")
     plt.show()
 
-def ImshowPlot(stateFile):
+def ImshowPlot(stateFile, eigvalfile):
+    """
+    Plot time evolution of a system
+    """
     states = LoadComplexData(stateFile)
+    energy = np.loadtxt(eigvalfile, dtype=np.float64)
     dim = states.shape[0]
     tSteps = states.shape[1]
-    dt = 1.0/tSteps
+    dt = math.pi/(energy[1] - energy[0])/tSteps
     xaxis = np.linspace(0, 1, num=dim)
     extent = [0, tSteps*dt, xaxis[0], xaxis[-1]]
     states = [abs(ii)**2 for ii in states]
@@ -189,10 +238,12 @@ def ImshowPlot(stateFile):
     plt.colorbar()
     fig.tight_layout()
 
+    plt.savefig("./output/alphatunneling.png")
     plt.show()
 
+CompareErrors("./output/eigvals.txt")
 # PlotVecAndEnergy("./output/eigvecs.txt", "./output/eigvals.txt")
-# PlotOneStateComplex("./output/state.txt")
+# PlotOneStateComplex("./output/state.txt", 0)
 # PlotState("./output/eigvecs.txt", "./output/eigvals.txt");
 # AnimatePlot("./output/state.txt")
-ImshowPlot("./output/state.txt")
+# ImshowPlot("./output/state.txt", "./output/eigvals.txt")

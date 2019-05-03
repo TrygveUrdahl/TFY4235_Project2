@@ -10,7 +10,7 @@ arma::cx_mat getSystemStateEvolution(const arma::mat &eigvec, const arma::vec &e
   arma::cx_mat states(eigvec.col(0).n_elem, tSteps, arma::fill::zeros);
   const arma::cx_double im(0.0, 1.0);
   double dt = t/static_cast<double>(tSteps);
-  std::cout << "dt: " << dt << std::endl;
+  #pragma omp parallel for schedule(static)
   for (int it = 0; it < tSteps; it++) { // Time steps
     double time = it * dt;
     for (int en = 0; en < alphas.n_elem; en++) { // Energies
@@ -70,7 +70,7 @@ arma::cx_mat evolveSystemForwardEuler(const arma::mat &eigvec,
 arma::cx_vec advanceSystemCrankNicolson(const arma::cx_vec &initialState,
               const arma::vec &xaxis, double (*potential)(double, double),
               double v0, double dt) {
-  const int N = initialState.n_elem;
+  const int N = initialState.n_elem - 2;
   arma::cx_vec finalState(N);
   arma::cx_mat A(N, N);
   arma::cx_mat b(N, N);
@@ -91,8 +91,12 @@ arma::cx_vec advanceSystemCrankNicolson(const arma::cx_vec &initialState,
       b(i, i + 1) = (im / 2.0) * dt / dx2;
     }
   }
-  arma::cx_vec rhs = b * initialState;
-  return arma::solve(A, rhs);
+
+  arma::cx_vec rhs = b * initialState.subvec(1, initialState.n_elem - 2);
+  arma::cx_vec solution = solve(A, rhs);
+  arma::cx_vec final(initialState.n_elem, arma::fill::zeros);
+  final.subvec(1, N) = solution;
+  return final;
 }
 
 

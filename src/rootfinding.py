@@ -5,6 +5,9 @@ import scipy.optimize as opt
 from math import sqrt, sin, cos, pi, exp
 
 def f(lam):
+    """
+    Returns function value corresponding to equation (3.4)
+    """
     barrier = 1000 #v0
     if (lam > barrier):
         return (lam - barrier)**2
