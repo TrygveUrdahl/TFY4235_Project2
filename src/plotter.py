@@ -36,7 +36,7 @@ def CompareErrors(eigvalfile):
     plt.subplot(2,1,2)
     plt.semilogx(xaxis, error, label="Rel. error")
     plt.xlabel("$n$")
-    plt.ylabel("$abs( {analytic}_n - \lambda_n)^2$")
+    plt.ylabel("$|{analytic}_n - \lambda_n|^2$")
     plt.legend(loc="best")
     fig.tight_layout()
     plt.savefig("./output/errors.png")
@@ -114,23 +114,24 @@ def PlotOneStateComplex(stateFile, t):
     plt.subplot(3,1,1)
     plt.plot(xaxis, X, '-', label="Real")
     plt.xlabel("$x/L$")
-    plt.ylabel("y")
+    plt.ylabel("$Re(\Psi(x,1))$")
     plt.legend(loc="best")
 
     plt.subplot(3,1,2)
     plt.plot(xaxis, Y, '-', label="Imaginary")
 
     plt.xlabel("$x/L$")
-    plt.ylabel("y")
+    plt.ylabel("$Im(\Psi(x,1))$")
     plt.legend(loc="best")
 
     plt.subplot(3,1,3)
     plt.plot(xaxis, normalizedState, label="Absolute square")
-    plt.xlabel("x")
-    plt.ylabel("$|\Psi(x,t)|^2$")
+    plt.xlabel("x/L")
+    plt.ylabel("$|\Psi(x,1)|^2$")
     plt.legend(loc="best")
     print("Normalization: ", sum(normalizedState))
     fig.tight_layout()
+    plt.savefig("./output/deltafunct1.png")
     plt.show()
 
 def PlotState(eigvecfile, eigvalfile):
@@ -224,11 +225,13 @@ def ImshowPlot(stateFile, eigvalfile):
     dim = states.shape[0]
     tSteps = states.shape[1]
     dt = math.pi/(energy[1] - energy[0])/tSteps
+    t = 2 * math.pi/(energy[1] - energy[0])# tSteps * dt
     xaxis = np.linspace(0, 1, num=dim)
-    extent = [0, tSteps*dt, xaxis[0], xaxis[-1]]
+    extent = [0, t, xaxis[0], xaxis[-1]]
+    statesRe = [ii.real for ii in states]
+    statesIm = [ii.imag for ii in states]
     states = [abs(ii)**2 for ii in states]
-    #states = [ii.real for ii in states]
-    #states = [ii.imag for ii in states]
+
 
     fig, ax = plt.subplots()
     plt.imshow(states, extent=extent, aspect="auto")
@@ -238,12 +241,58 @@ def ImshowPlot(stateFile, eigvalfile):
     plt.colorbar()
     fig.tight_layout()
 
-    plt.savefig("./output/alphatunneling.png")
+    # plt.savefig("./output/alphatunneling.png")
+    # plt.savefig("./output/deltaevolve.png")
     plt.show()
 
-CompareErrors("./output/eigvals.txt")
+def ImshowPlotSubplots(stateFile, eigvalfile):
+    """
+    Plot time evolution of a system
+    """
+    states = LoadComplexData(stateFile)
+    energy = np.loadtxt(eigvalfile, dtype=np.float64)
+    dim = states.shape[0]
+    tSteps = states.shape[1]
+    dt = math.pi/(energy[1] - energy[0])/tSteps
+    t = 2 * math.pi/(energy[1] - energy[0])# tSteps * dt
+    xaxis = np.linspace(0, 1, num=dim)
+    extent = [0, t, xaxis[0], xaxis[-1]]
+    statesRe = [ii.real for ii in states]
+    statesIm = [ii.imag for ii in states]
+    states = [abs(ii)**2 for ii in states]
+
+
+    fig, ax = plt.subplots()
+    plt.subplot(3,1,1)
+    plt.imshow(statesRe, extent=extent, aspect="auto")
+    plt.title("Time evolution of $Re|\Psi(x,t)|^2$")
+    plt.xlabel("Time $t/(2mL^2/\hbar)$")
+    plt.ylabel("Position $x/L$")
+    plt.colorbar()
+
+    plt.subplot(3,1,2)
+    plt.imshow(statesIm, extent=extent, aspect="auto")
+    plt.title("Time evolution of $Im|\Psi(x,t)|^2$")
+    plt.xlabel("Time $t/(2mL^2/\hbar)$")
+    plt.ylabel("Position $x/L$")
+    plt.colorbar()
+
+    plt.subplot(3,1,3)
+    plt.imshow(states, extent=extent, aspect="auto")
+    plt.title("Time evolution of $|\Psi(x,t)|^2$")
+    plt.xlabel("Time $t/(2mL^2/\hbar)$")
+    plt.ylabel("Position $x/L$")
+    plt.colorbar()
+    fig.tight_layout()
+
+    # plt.savefig("./output/alphatunneling.png")
+    # plt.savefig("./output/deltaevolve.png")
+    plt.show()
+
+# CompareErrors("./output/eigvals.txt")
 # PlotVecAndEnergy("./output/eigvecs.txt", "./output/eigvals.txt")
-# PlotOneStateComplex("./output/state.txt", 0)
+# PlotOneStateComplex("./output/state.txt", 1)
 # PlotState("./output/eigvecs.txt", "./output/eigvals.txt");
 # AnimatePlot("./output/state.txt")
-# ImshowPlot("./output/state.txt", "./output/eigvals.txt")
+# ImshowPlotSubplots("./output/state.txt", "./output/eigvals.txt")
+ImshowPlot("./output/state.txt", "./output/eigvals.txt")

@@ -14,8 +14,8 @@ int main(int argc, char** argv) {
     std::cout << "\tint n: problem size. " << std::endl;
     std::cout << "Voluntary argument(s): " << std::endl;
     std::cout << "\tbool save: save files (0 or 1, defaults to 0). " << std::endl;
-    std::cout << "\tint job: which time evolution scheme to use (0 for none, 1 for alphas, 2 for CN, default none)." << std::endl;
-
+    std::cout << "\tint job: which time evolution scheme to use " << std::endl;
+    std::cout << "\t  (0 for none, 1 for alphas, 2 for CN, default none)." << std::endl;
 
     throw std::logic_error("Program arguments are wrong! ");
   }
@@ -35,7 +35,7 @@ int main(int argc, char** argv) {
   }
 
   double v0 = 1000;
-  auto system = generateFDMMatrix(n - 2, dx2, xaxis, zeroPotential, v0, false);
+  auto system = generateFDMMatrix(n - 2, dx2, xaxis, potentialBarrier, v0, false);
 
   arma::vec eigenergy;
   arma::mat eigvec;
@@ -45,9 +45,8 @@ int main(int argc, char** argv) {
   std::cout << "Eigenvectors orthogonal: " << (orthogonal ? "success! " : "fail! ") << std::endl;
   std::cout << "Eigenvectors normalized: " << (normalized ? "success! " : "fail! ") << std::endl;
 
-  arma::vec initialState = generateDeltaInitialState(n); //sqrt(0.5) * eigvec.col(0) + sqrt(0.5) * eigvec.col(1);
-  arma::vec alphas = getAlphaCoefficients(initialState, eigvec);
-  double time = M_PI/(eigenergy(1) - eigenergy(0));
+  arma::vec initialState = sqrt(0.5) * eigvec.col(0) + sqrt(0.5) * eigvec.col(1);
+  double time = 2 * M_PI/(eigenergy(1) - eigenergy(0));
   arma::cx_mat states;
 
   if (job == 0) {
@@ -56,6 +55,7 @@ int main(int argc, char** argv) {
 
   if (job == 1) {
     std::cout << "Evolving system by alphas. " << std::endl;
+    arma::vec alphas = getAlphaCoefficients(initialState, eigvec);
     states = getSystemStateEvolution(eigvec, eigenergy, initialState, alphas, dx, time, 1000);
   }
   else if (job == 2)

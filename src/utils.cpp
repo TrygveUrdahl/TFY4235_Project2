@@ -51,6 +51,7 @@ arma::vec generateInitialState(double (*function)(double, int), const arma::vec 
 void solveSystem(arma::vec *eigenergy, arma::mat *eigvec, const arma::sp_mat &system, int n, double dx2) {
   int k = n - 3;
   arma::eigs_sym(*eigenergy, *eigvec, system, k, "sm");
+  #pragma omp parallel for schedule(static)
   for (int i = 0; i < k; i++) {
     if ((*eigvec)(1,i) < 0) {
       for (int j = 0; j < n - 2; j++) {
@@ -109,7 +110,7 @@ double getNormalization(const arma::vec &eigen) {
   return norm;
 }
 
-// Get normalization of one eigenvector
+// Get normalization of one eigenvector (complex)
 double getNormalization(const arma::cx_vec &eigen) {
   double norm = 0;
   #pragma omp parallel for schedule(static) reduction(+:norm)
