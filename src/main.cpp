@@ -40,7 +40,7 @@ int main(int argc, char** argv) {
     initial = atoi(argv[4]);
   }
   double v0 = 500;
-  auto system = generateFDMMatrix(n - 2, dx2, xaxis, zeroPotential, v0, false);
+  auto system = generateFDMMatrix(n - 2, dx2, xaxis, potentialBarrier, v0, false);
 
   arma::vec eigenergy;
   arma::mat eigvec;

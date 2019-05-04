@@ -48,6 +48,7 @@ arma::vec generateInitialState(double (*function)(double, int), const arma::vec 
   return initialState;
 }
 
+// Solve the system to find eigenvectors and eigenvalues
 void solveSystem(arma::vec *eigenergy, arma::mat *eigvec, const arma::sp_mat &system, int n, double dx2) {
   int k = n - 3;
   arma::eigs_sym(*eigenergy, *eigvec, system, k, "sm");
@@ -59,6 +60,7 @@ void solveSystem(arma::vec *eigenergy, arma::mat *eigvec, const arma::sp_mat &sy
       }
     }
   }
+  // Ensure boundary conditions
   arma::mat eigvecFull(n, k);
   eigvecFull.row(0).fill(0);
   eigvecFull.row(eigvecFull.n_rows - 1).fill(0);
@@ -70,7 +72,6 @@ void solveSystem(arma::vec *eigenergy, arma::mat *eigvec, const arma::sp_mat &sy
 double innerProduct(const arma::vec &eigen, const arma::vec &initial) {
   arma::rowvec eigenRow = arma::conv_to<arma::rowvec>::from(eigen);
   double result = arma::as_scalar(eigenRow * initial);
-  // double result = dot(eigen, initial);
   return result;
 }
 
@@ -91,7 +92,7 @@ bool checkOrthogonality(const arma::mat &eigvec) {
       else if (j == i) {
         if (abs(val - 1.0) > 1E-9) {
           correct = false;
-          // std::cout << "Break2! val: " << val - 1.0f << std::endl;
+          // std::cout << "Break2! val: " << val - 1.0 << std::endl;
           break;
         }
       }
@@ -144,7 +145,7 @@ arma::vec getAlphaCoefficients(const arma::vec &initial, const arma::mat &eigvec
   return alphas;
 }
 
-
+// Generate a delta function initial state
 arma::vec generateDeltaInitialState(int n) {
   arma::vec state = arma::vec(n).zeros();
   state(n/2) = 1;

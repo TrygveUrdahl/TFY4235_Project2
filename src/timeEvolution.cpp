@@ -5,6 +5,7 @@
 
 #include "utils.hpp"
 
+// Evolve system by expansion in alphas
 arma::cx_mat getSystemStateEvolution(const arma::mat &eigvec, const arma::vec &eigenEnergy,
               const arma::vec &initialState, const arma::vec &alphas, double dx, double t, int tSteps) {
   arma::cx_mat states(eigvec.col(0).n_elem, tSteps, arma::fill::zeros);
@@ -20,7 +21,7 @@ arma::cx_mat getSystemStateEvolution(const arma::mat &eigvec, const arma::vec &e
   return states;
 }
 
-
+// One time step of Forward Euler
 arma::cx_vec advanceSystemForwardEuler(const arma::cx_vec &initialState,
               const arma::vec &xaxis, double (*potential)(double, double),
               double v0, double dt) {
@@ -48,7 +49,7 @@ arma::cx_vec advanceSystemForwardEuler(const arma::cx_vec &initialState,
   return finalState;
 }
 
-
+// Evolve system by Forward Euler
 arma::cx_mat evolveSystemForwardEuler(const arma::cx_vec &initialState,
               const arma::vec &xaxis, double (*potential)(double, double),
               double v0, double CFL, int tSteps) {
@@ -65,7 +66,7 @@ arma::cx_mat evolveSystemForwardEuler(const arma::cx_vec &initialState,
   return states;
 }
 
-
+// One time step of Crank-Nicolson
 arma::cx_vec advanceSystemCrankNicolson(const arma::cx_vec &initialState,
               const arma::vec &xaxis, double (*potential)(double, double),
               double v0, double dt) {
@@ -89,18 +90,15 @@ arma::cx_vec advanceSystemCrankNicolson(const arma::cx_vec &initialState,
       b(i, i + 1) = (im / 2.0) * dt / dx2;
     }
   }
-  // std::cout << b.diag() << std::endl;
-  // std::cout << "Norm: " << getNormalization(initialState) << std::endl;
+  // Ensure boundary conditions
   arma::cx_vec rhs = b * initialState.subvec(1, N);
-  // std::cout << rhs << std::endl;
   arma::cx_vec solution = arma::solve(A, rhs);
   arma::cx_vec final(initialState.n_elem, arma::fill::zeros);
   final.subvec(1, N) = solution;
-  // final = arma::normalise(final, 1/sqrt(dx));
   return final;
 }
 
-
+// Evolve system by Crank-Nicolson
 arma::cx_mat evolveSystemCrankNicolson(const arma::cx_vec &initialState,
               const arma::vec &xaxis, double (*potential)(double, double),
               double v0, double t) {
@@ -115,6 +113,5 @@ arma::cx_mat evolveSystemCrankNicolson(const arma::cx_vec &initialState,
     states.col(t) = advanceSystemCrankNicolson(states.col(t - 1), xaxis, potential, v0, dt);
     if (t % 1000 == 0) std::cout << "t: " << t << std::endl;
   }
-  // std::cout << states.col(40) << std::endl;
   return states;
 }
