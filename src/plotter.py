@@ -3,14 +3,29 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import math
+import h5py
+import pandas as pd
+"""
+import matplotlib as mpl
 
-def LoadComplexData(file,**genfromtext_args):
+mpl.rcParams['mathtext.fontset'] = 'cm'
+mpl.rcParams['font.family'] = 'serif'
+mpl.rcParams['font.serif'] = 'CMU Serif Roman 2'
+"""
+
+def LoadComplexData(fileReal, fileImag,**genfromtext_args):
     """
-    Load complex data from the Armadillo C++ format in numpy.
+    Load complex data from the C++ format as HDF5 in numpy.
     """
-    array_as_strings = np.genfromtxt(file,dtype=str,**genfromtext_args)
-    complex_parser = np.vectorize(lambda x: complex(*eval(x)))
-    return complex_parser(array_as_strings)
+    hfReal = h5py.File(fileReal, 'r')
+    hfImag = h5py.File(fileImag, 'r')
+
+    statesReal = hfReal.get('dataset').value
+    statesImag = hfImag.get('dataset').value
+
+    states = statesReal + statesImag * 1j
+    states = states.transpose()
+    return states
 
 
 def CompareErrors(eigvalfile):
@@ -95,12 +110,12 @@ def PlotVecAndEnergy(eigvecfile, eigvalfile):
     plt.savefig("./output/eigenenergies.png")
     plt.show()
 
-def PlotOneStateComplex(stateFile, t):
+def PlotOneStateComplex(stateFileReal, stateFileImag, t):
     """
     Plot one state from a complex state file. The state to plot can be chosen.
     """
     # Plot one state
-    state = LoadComplexData(stateFile)[:,t]
+    state = LoadComplexData(stateFileReal, stateFileImag)[:,t]
     X = [val.real for val in state]
     Y = [val.imag for val in state]
     #print(Y)
@@ -110,33 +125,29 @@ def PlotOneStateComplex(stateFile, t):
     xaxis = np.linspace(0, 1, num=dim)
     normalizedState = [abs(i)**2 for i in state]
     #plt.plot(xaxis, normalizedState, '-', label="Probability")
-    fig, ax = plt.subplots()
-    plt.subplot(3,1,1)
-    plt.plot(xaxis, X, '-', label="Real")
-    plt.xlabel("$x/L$")
-    plt.ylabel("$Re(\Psi(x,1))$")
-    plt.legend(loc="best")
+    fig, axes = plt.subplots(3, 1, sharex=True)
+    axes[0].tick_params(axis='x', bottom=False)
+    axes[0].plot(xaxis, X, '-', label="Real")
+    axes[0].set_ylabel("$Re(\Psi(x,1))$")
+    axes[0].legend(loc="best")
 
-    plt.subplot(3,1,2)
-    plt.plot(xaxis, Y, '-', label="Imaginary")
+    axes[1].tick_params(axis='x', bottom=False)
+    axes[1].plot(xaxis, Y, '-', label="Imaginary")
+    axes[1].set_ylabel("$Im(\Psi(x,1))$")
+    axes[1].legend(loc="best")
 
-    plt.xlabel("$x/L$")
-    plt.ylabel("$Im(\Psi(x,1))$")
-    plt.legend(loc="best")
-
-    plt.subplot(3,1,3)
-    plt.plot(xaxis, normalizedState, label="Absolute square")
-    plt.xlabel("x/L")
-    plt.ylabel("$|\Psi(x,1)|^2$")
-    plt.legend(loc="best")
+    axes[2].plot(xaxis, normalizedState, label="Absolute square")
+    axes[2].set_xlabel("x/L")
+    axes[2].set_ylabel("$|\Psi(x,1)|^2$")
+    axes[2].legend(loc="best")
     print("Normalization: ", sum(normalizedState))
-    fig.tight_layout()
-    plt.savefig("./output/deltafunct1.png")
+    fig.tight_layout(h_pad=0.01)
+    # plt.savefig("./output/deltafunct1.png")
     plt.show()
 
 def PlotState(eigvecfile, eigvalfile):
     """
-    Plot eigenvectors and eigenenergies for a solved system
+    Plot eigenvectors and eigenenergies for a solved system.
     """
     barrierHeight = 0.005
     eigvec = np.loadtxt(eigvecfile, dtype=np.float64)
@@ -194,12 +205,13 @@ def updateAnim(i, fig, line, states, xaxis, text, dt):
     # print("Norm:", sum([abs(ii)**2 for ii in states[:,i]]))
     return line, text
 
-def AnimatePlot(stateFile):
+def AnimatePlot(stateFileReal, stateFileImag):
     """
     Animate time evolution of a system with a barrier from x = 1/3 to x = 2/3
-    (barrier can be togled by variable "barrier" in initAnim)
+    (barrier can be togled by variable "barrier" in initAnim).
     """
-    states = LoadComplexData(stateFile)
+    states = LoadComplexData(stateFileReal, stateFileImag)
+    # states = states[:,0:-1:100]
     dt = 1/states.shape[1]
     fig, ax = plt.subplots()
     dim = states.shape[0]
@@ -210,17 +222,17 @@ def AnimatePlot(stateFile):
     ax.set_xlabel("Position $x/L$")
     ax.set_ylabel("$|\Psi(x,t)|^2$")
     plt.xlim(0, 1)
-    plt.ylim(0, 0.03)
+    plt.ylim(0, 0.15)
     text = ax.text(0.5, 0.95, "t' = %f" % 0, transform=ax.transAxes, va="top", ha="center")
-    ani = animation.FuncAnimation(fig, updateAnim, init_func=initAnim, fargs=(fig, line, states, xaxis, text, dt), frames=states.shape[1], interval=50, repeat=True)
+    ani = animation.FuncAnimation(fig, updateAnim, init_func=initAnim, fargs=(fig, line, states, xaxis, text, dt), frames=states.shape[1], interval=200, repeat=True)
 
     plt.show()
 
-def ImshowPlot(stateFile, eigvalfile):
+def ImshowPlot(stateFileReal, stateFileImag, eigvalfile):
     """
     Plot time evolution of a system
     """
-    states = LoadComplexData(stateFile)
+    states = LoadComplexData(stateFileReal, stateFileImag)
     energy = np.loadtxt(eigvalfile, dtype=np.float64)
     dim = states.shape[0]
     tSteps = states.shape[1]
@@ -231,7 +243,6 @@ def ImshowPlot(stateFile, eigvalfile):
     statesRe = [ii.real for ii in states]
     statesIm = [ii.imag for ii in states]
     states = [abs(ii)**2 for ii in states]
-
 
     fig, ax = plt.subplots()
     plt.imshow(states, extent=extent, aspect="auto")
@@ -241,15 +252,16 @@ def ImshowPlot(stateFile, eigvalfile):
     plt.colorbar()
     fig.tight_layout()
 
-    # plt.savefig("./output/alphatunneling.png")
+    # plt.savefig("./output/cntunneling.png")
     # plt.savefig("./output/deltaevolve.png")
     plt.show()
 
-def ImshowPlotSubplots(stateFile, eigvalfile):
+def ImshowPlotSubplots(stateFileReal, stateFileImag, eigvalfile):
     """
-    Plot time evolution of a system
+    Plot time evolution of a system with real and imaginary values.
     """
-    states = LoadComplexData(stateFile)
+    states = LoadComplexData(stateFileReal, stateFileImag)
+
     energy = np.loadtxt(eigvalfile, dtype=np.float64)
     dim = states.shape[0]
     tSteps = states.shape[1]
@@ -260,7 +272,6 @@ def ImshowPlotSubplots(stateFile, eigvalfile):
     statesRe = [ii.real for ii in states]
     statesIm = [ii.imag for ii in states]
     states = [abs(ii)**2 for ii in states]
-
 
     fig, ax = plt.subplots()
     plt.subplot(3,1,1)
@@ -291,8 +302,8 @@ def ImshowPlotSubplots(stateFile, eigvalfile):
 
 # CompareErrors("./output/eigvals.txt")
 # PlotVecAndEnergy("./output/eigvecs.txt", "./output/eigvals.txt")
-# PlotOneStateComplex("./output/state.txt", 1)
+# PlotOneStateComplex("./output/stateReal.h5", "./output/stateImag.h5", 2)
 # PlotState("./output/eigvecs.txt", "./output/eigvals.txt");
-# AnimatePlot("./output/state.txt")
-# ImshowPlotSubplots("./output/state.txt", "./output/eigvals.txt")
-ImshowPlot("./output/state.txt", "./output/eigvals.txt")
+# AnimatePlot("./output/stateReal.h5", "./output/stateImag.h5")
+# ImshowPlotSubplots("./output/stateReal.h5", "./output/stateImag.h5", "./output/eigvals.txt")
+ImshowPlot("./output/stateReal.h5", "./output/stateImag.h5", "./output/eigvals.txt")

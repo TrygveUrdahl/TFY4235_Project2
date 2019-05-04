@@ -25,7 +25,7 @@ roots = []
 for x in [73.8663877,73.8683378,293.2169877,293.2410202,647.6674955,648.1536705]:
     root = opt.fsolve(f, x)
     if root not in roots:
-        roots.append(float(root))
+        roots.append(np.float64(root))
 print("Roots:", roots)
 
 plt.plot(xaxis, yaxis)

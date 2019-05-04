@@ -27,7 +27,7 @@ arma::cx_vec advanceSystemForwardEuler(const arma::cx_vec &initialState,
 
   const int N = initialState.n_elem;
   arma::cx_vec finalState(N);
-  arma::cx_mat A(N, N);
+  arma::cx_mat A(N, N, arma::fill::zeros);
   const arma::cx_double im(0, 1);
   const double dx = xaxis(1) - xaxis(0); // Uniform x-axis
   const double dx2 = dx * dx;
@@ -49,8 +49,7 @@ arma::cx_vec advanceSystemForwardEuler(const arma::cx_vec &initialState,
 }
 
 
-arma::cx_mat evolveSystemForwardEuler(const arma::mat &eigvec,
-              const arma::vec &eigenEnergy, const arma::cx_vec &initialState,
+arma::cx_mat evolveSystemForwardEuler(const arma::cx_vec &initialState,
               const arma::vec &xaxis, double (*potential)(double, double),
               double v0, double CFL, int tSteps) {
 
@@ -63,7 +62,6 @@ arma::cx_mat evolveSystemForwardEuler(const arma::mat &eigvec,
   for (int t = 1; t < tSteps; t++) {
     states.col(t) = advanceSystemForwardEuler(states.col(t - 1), xaxis, potential, v0, dt);
   }
-
   return states;
 }
 
@@ -72,13 +70,12 @@ arma::cx_vec advanceSystemCrankNicolson(const arma::cx_vec &initialState,
               const arma::vec &xaxis, double (*potential)(double, double),
               double v0, double dt) {
   const int N = initialState.n_elem - 2;
-  arma::cx_mat A(N, N);
-  arma::cx_mat b(N, N);
+  arma::cx_mat A(N, N, arma::fill::zeros);
+  arma::cx_mat b(N, N, arma::fill::zeros);
   const arma::cx_double im(0, 1);
   const double dx = xaxis(1) - xaxis(0); // Uniform x-axis
   const double dx2 = dx * dx;
   // Fill A and b
-  #pragma omp parallel for schedule(static)
   for (int i = 0; i < N; i++) {
     double v = potential(xaxis(i + 1), v0);
     A(i, i) = 1.0 + ((im/2.0) * dt * (v + 2.0/dx2));
@@ -92,11 +89,14 @@ arma::cx_vec advanceSystemCrankNicolson(const arma::cx_vec &initialState,
       b(i, i + 1) = (im / 2.0) * dt / dx2;
     }
   }
-
+  // std::cout << b.diag() << std::endl;
+  // std::cout << "Norm: " << getNormalization(initialState) << std::endl;
   arma::cx_vec rhs = b * initialState.subvec(1, N);
-  arma::cx_vec solution = solve(A, rhs);
+  // std::cout << rhs << std::endl;
+  arma::cx_vec solution = arma::solve(A, rhs);
   arma::cx_vec final(initialState.n_elem, arma::fill::zeros);
   final.subvec(1, N) = solution;
+  // final = arma::normalise(final, 1/sqrt(dx));
   return final;
 }
 
@@ -109,11 +109,12 @@ arma::cx_mat evolveSystemCrankNicolson(const arma::cx_vec &initialState,
   const double dt = dx * dx;
   const int tSteps = t/dt;
   std::cout << "tSteps: " << tSteps << std::endl;
-  arma::cx_mat states(initialState.n_elem, tSteps);
+  arma::cx_mat states(initialState.n_elem, tSteps, arma::fill::zeros);
   states.col(0) = initialState;
   for (int t = 1; t < tSteps; t++) {
     states.col(t) = advanceSystemCrankNicolson(states.col(t - 1), xaxis, potential, v0, dt);
     if (t % 1000 == 0) std::cout << "t: " << t << std::endl;
   }
+  // std::cout << states.col(40) << std::endl;
   return states;
 }
